@@ -1,14 +1,28 @@
 'use client'
-import { useRef, useEffect, FormEvent } from 'react'
+import { useRef, useEffect, useState, FormEvent } from 'react'
 import { useWorkersStore } from '../hooks/useWorkersStore'
 
 export default function Header() {
-  const { query, setQuery } = useWorkersStore()
+  // subscribe only to what we need
+  const queryFromStore = useWorkersStore(s => s.query)
+  const setQuery = useWorkersStore(s => s.setQuery)
+
+  // local state = instant typing
+  const [q, setQ] = useState(queryFromStore)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // keep local input synced if query changes elsewhere (e.g., Filters)
+  useEffect(() => { setQ(queryFromStore) }, [queryFromStore])
+
+  // DEBOUNCE store updates (reduces rerenders while typing)
+  useEffect(() => {
+    const id = window.setTimeout(() => setQuery(q), 150) // tweak 100–200ms
+    return () => clearTimeout(id)
+  }, [q, setQuery])
 
   const onSubmit = (e: FormEvent) => e.preventDefault()
 
-  // Quick shortcut: press "/" to focus the search
+  // "/" focuses the search
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === '/' && document.activeElement?.tagName !== 'INPUT') {
@@ -25,33 +39,25 @@ export default function Header() {
       <div className="mx-auto max-w-6xl px-4 py-3 flex items-center gap-3">
         <h1 className="text-lg font-semibold tracking-tight">Worker Finder</h1>
 
-        {/* NAV SEARCH */}
         <form onSubmit={onSubmit} className="ml-auto w-full max-w-md">
           <label htmlFor="nav-search" className="sr-only">Search workers</label>
           <div className="relative">
-            {/* search icon */}
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔎</span>
-
             <input
               id="nav-search"
               ref={inputRef}
               type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
               placeholder="Search by name or service…"
               autoComplete="off"
-              className="w-full rounded-xl bg-slate-800 pl-9 pr-9 py-2 text-sm outline-none ring-1 ring-white/10
-                         placeholder-slate-400 focus:ring-2 focus:ring-blue-400"
-              aria-describedby="nav-search-help"
+              className="w-full rounded-xl bg-slate-800 pl-9 pr-9 py-2 text-sm outline-none ring-1 ring-white/10 placeholder-slate-400 focus:ring-2 focus:ring-blue-400"
             />
-
-            {/* clear button */}
-            {query && (
+            {q && (
               <button
                 type="button"
-                onClick={() => { setQuery(''); inputRef.current?.focus() }}
-                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md px-2 py-1 text-xs text-slate-300
-                           hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                onClick={() => { setQ(''); inputRef.current?.focus() }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md px-2 py-1 text-xs text-slate-300 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 aria-label="Clear search"
                 title="Clear"
               >
@@ -59,9 +65,6 @@ export default function Header() {
               </button>
             )}
           </div>
-          <p id="nav-search-help" className="sr-only">
-            Type a worker name or service. Press slash to focus.
-          </p>
         </form>
       </div>
     </header>

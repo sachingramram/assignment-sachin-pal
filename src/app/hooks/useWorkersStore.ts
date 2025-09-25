@@ -2,7 +2,10 @@
 import { create } from 'zustand'
 import type { Worker } from '@/types/workers'
 
-export type SortKey = 'price' | 'rating' | 'name'
+export type SortKey =
+  | 'rating_desc' | 'rating_asc'
+  | 'price_asc'   | 'price_desc'
+  | 'name_asc'    | 'name_desc'
 
 type State = {
   workers: Worker[]
@@ -18,34 +21,17 @@ type Actions = {
   setService: (s: State['service']) => void
   setPriceMax: (p?: number) => void
   setSortBy: (k: SortKey) => void
-  filtered: () => Worker[]
 }
 
-export const useWorkersStore = create<State & Actions>((set, get) => ({
+export const useWorkersStore = create<State & Actions>((set) => ({
   workers: [],
   query: '',
   service: 'All',
   priceMax: undefined,
-  sortBy: 'rating',
+  sortBy: 'rating_desc',          // default: High → Low by rating
   setWorkers: (w) => set({ workers: w }),
   setQuery: (q) => set({ query: q }),
   setService: (s) => set({ service: s }),
   setPriceMax: (p) => set({ priceMax: p }),
   setSortBy: (k) => set({ sortBy: k }),
-  filtered: () => {
-    const { workers, query, service, priceMax, sortBy } = get()
-    const q = query.trim().toLowerCase()
-    const list = workers.filter(w => {
-      const matchesQ = !q || `${w.name} ${w.location ?? ''} ${w.service}`.toLowerCase().includes(q)
-      const matchesS = service === 'All' || w.service === service
-      const matchesP = priceMax == null || w.pricePerDay <= priceMax
-      return matchesQ && matchesS && matchesP
-    })
-    const sorter: Record<SortKey, (a: Worker, b: Worker) => number> = {
-      rating: (a, b) => b.rating - a.rating,
-      price: (a, b) => a.pricePerDay - b.pricePerDay,
-      name: (a, b) => a.name.localeCompare(b.name),
-    }
-    return list.sort(sorter[sortBy])
-  },
 }))
