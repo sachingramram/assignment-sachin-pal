@@ -88,5 +88,5 @@ This assignment is designed to assess your practical skills in **React, Next.js,
 - Add comment for any **bug fix or optimization.** 
 - Document any **extra improvements** you make in your submission.
 
-Good luck 🚀  
+Good luck 
 >>>>>>> 9060d72 (Assignment added)

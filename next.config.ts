@@ -1,10 +1,11 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
-  images:{
-    domains: ['images.unsplash.com','randomuser.me'],
+// next.config.mjs
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: 'randomuser.me', pathname: '/api/portraits/**' },
+      { protocol: 'https', hostname: 'images.unsplash.com', pathname: '/**' }
+    ]
   }
-};
-
-export default nextConfig;
+}
+export default nextConfig
