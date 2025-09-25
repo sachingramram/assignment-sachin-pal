@@ -9,7 +9,7 @@ import type { Worker } from './types/workers'
 
 const ServiceStats = dynamic(() => import('./components/ServiceStats'), {
   ssr: false,
-  loading: () => <div className="mx-auto max-w-6xl px-4 py-8 text-slate-400">Loading stats…</div>,
+  loading: () => <div className="mx-auto max-w-6xl px-4 pb-8 text-slate-400">Loading…</div>,
 })
 
 export default function Page() {
