@@ -21,13 +21,18 @@ export default function ServiceStats() {
     <section className="mx-auto max-w-6xl px-4 pb-8">
       <h2 className="mb-3 text-lg font-semibold">Service overview</h2>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map(s => (
-          <div key={s.service} className="rounded-2xl border border-white/10 bg-slate-800/60 p-4">
-            <p className="text-sm text-slate-300">{s.service}</p>
-            <p className="text-2xl font-bold">{s.count}</p>
-            <p className="text-xs text-slate-400">avg ₹{s.avgPrice} • min ₹{s.minPrice} • max ₹{s.maxPrice}</p>
-          </div>
-        ))}
+        {stats.map((s, idx) => {
+          const key = `${s.service}-${s.count}-${s.minPrice}-${s.maxPrice}-${idx}` // guaranteed unique
+          return (
+            <div key={key} className="rounded-2xl border border-white/10 bg-slate-800/60 p-4">
+              <p className="text-sm text-slate-300">{s.service}</p>
+              <p className="text-2xl font-bold">{s.count}</p>
+              <p className="text-xs text-slate-400">
+                avg ₹{s.avgPrice} • min ₹{s.minPrice} • max ₹{s.maxPrice}
+              </p>
+            </div>
+          )
+        })}
       </div>
     </section>
   )
