@@ -1,8 +1,8 @@
 'use client'
 import { create } from 'zustand'
-import type { Worker } from '../types/workers'
+import type { Worker } from '@/types/workers'
 
-type SortKey = 'price' | 'rating' | 'name'
+export type SortKey = 'price' | 'rating' | 'name'
 
 type State = {
   workers: Worker[]

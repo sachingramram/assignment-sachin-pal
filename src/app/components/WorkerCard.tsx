@@ -1,6 +1,6 @@
 'use client'
 import Image from 'next/image'
-import type { Worker } from '../types/workers'
+import type { Worker } from '@/types/workers'
 import { memo } from 'react'
 
 type Props = { worker: Worker }

@@ -1,1 +1,53 @@
-@import 'tailwindcss';
+/* src/app/globals.css */
+
+/* 1) Tailwind v4 import */
+@import "tailwindcss";
+
+/* 2) Base tweaks */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    color-scheme: light dark;
+  }
+
+  body {
+    @apply bg-slate-900 text-slate-100 antialiased;
+    min-height: 100dvh;
+  }
+
+  a {
+    @apply text-sky-300 hover:text-sky-200;
+  }
+
+  /* Accessible focus styles only when using keyboard */
+  :focus-visible {
+    @apply outline-none ring-2 ring-blue-400 ring-offset-2 ring-offset-slate-900;
+  }
+
+  ::selection {
+    @apply bg-blue-500/40;
+  }
+
+  /* Nice default look for form fields */
+  input, select, textarea, button {
+    @apply outline-none;
+  }
+  input, select, textarea {
+    @apply bg-slate-800 text-slate-100 placeholder-slate-400;
+  }
+}
+
+/* 3) Optional small utilities you can reuse */
+@layer utilities {
+  .container-app { @apply mx-auto max-w-6xl px-4; }
+
+  /* Thin scrollbar (WebKit) */
+  .scrollbar {
+    scrollbar-width: thin;            /* Firefox */
+    scrollbar-color: #334155 #0f172a; /* thumb / track */
+  }
+  .scrollbar::-webkit-scrollbar { width: 10px; height: 10px; }
+  .scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+  .scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+  .scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+}

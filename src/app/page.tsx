@@ -5,7 +5,7 @@ import Header from './components/Header'
 import Filters from './components/Filters'
 import WorkerCard from './components/WorkerCard'
 import { useWorkersStore } from './hooks/useWorkersStore'
-import type { Worker } from './types/workers'
+import type { Worker } from '@/types/workers'
 
 const ServiceStats = dynamic(() => import('./components/ServiceStats'), {
   ssr: false,
