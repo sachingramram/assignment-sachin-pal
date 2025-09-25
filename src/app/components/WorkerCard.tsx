@@ -15,13 +15,14 @@ function WorkerCard({ worker }: Props) {
     >
       <div className="flex items-center gap-4">
         <Image
-          src={worker.image}
-          alt={worker.name}
-          width={72}
-          height={72}
-          loading="lazy"
-          className="rounded-full object-cover ring-1 ring-white/10"
-        />
+  src={worker.image}
+  alt={worker.name}
+  width={72}
+  height={72}
+  unoptimized                // ← add this line
+  className="rounded-full object-cover ring-1 ring-white/10"
+/>
+
         <div className="min-w-0">
           <h3 className="truncate text-lg font-medium">{worker.name}</h3>
           <p className="text-sm text-slate-300">{worker.service}</p>
