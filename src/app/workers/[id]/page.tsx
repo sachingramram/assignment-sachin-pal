@@ -3,9 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getWorkerById } from '../../lib/workers'
 
-export default async function WorkerDetail({
-  params,
-}: { params: { id: string } }) {
+export default async function WorkerDetail({ params }: { params: { id: string } }) {
   const worker = await getWorkerById(params.id)
   if (!worker) notFound()
 
@@ -22,6 +20,7 @@ export default async function WorkerDetail({
             alt={worker.name}
             width={200}
             height={200}
+            unoptimized                 // ← add this line
             className="rounded-2xl object-cover ring-1 ring-white/10"
             priority
           />
