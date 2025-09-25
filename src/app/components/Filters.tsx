@@ -84,10 +84,6 @@ export default function Filters({ services }: Props) {
             onChange={handleSortChange}
             className="w-full rounded-xl bg-slate-800 px-3 py-2.5 min-h-[44px] text-base sm:text-sm outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-blue-400"
           >
-            <optgroup label="Rating">
-              <option value="rating_desc">High → Low</option>
-              <option value="rating_asc">Low → High</option>
-            </optgroup>
             <optgroup label="Price">
               <option value="price_asc">Low → High</option>
               <option value="price_desc">High → Low</option>
