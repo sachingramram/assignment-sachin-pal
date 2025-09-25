@@ -2,30 +2,32 @@ import { render, screen } from '@testing-library/react'
 import WorkerCard from '@/app/components/WorkerCard'
 import type { Worker } from '@/types/workers'
 
-const baseWorker: Worker = {
+const worker: Worker = {
   id: '1',
   name: 'Ravi Kumar',
   service: 'Plumber',
   pricePerDay: 1200,
-  rating: 4.5,
+  rating: 4.5, // not displayed by the card now, but required by type
   image: 'https://randomuser.me/api/portraits/men/32.jpg',
-  location: 'Delhi',
+  location: 'Delhi', // not asserted anymore
 }
 
-describe('WorkerCard', () => {
-  it('renders worker details (name, service, price, rating, location)', () => {
-    render(<WorkerCard worker={baseWorker} />)
+describe('WorkerCard (minimal view)', () => {
+  it('renders image, name, service, price and links to detail page', () => {
+    render(<WorkerCard worker={worker} />)
 
+    // name & service
     expect(screen.getByText('Ravi Kumar')).toBeInTheDocument()
     expect(screen.getByText('Plumber')).toBeInTheDocument()
-    expect(screen.getByText('₹1200')).toBeInTheDocument()
-    expect(screen.getByLabelText(/Rating 4.5 out of 5/i)).toBeInTheDocument()
-    expect(screen.getByText('Delhi')).toBeInTheDocument()
-  })
 
-  it('shows "★ —" when rating is missing/invalid', () => {
-    const noRating: Worker = { ...baseWorker, rating: NaN }
-    render(<WorkerCard worker={noRating} />)
-    expect(screen.getByText('★ —')).toBeInTheDocument()
+    // price (allow possible spacing)
+    expect(screen.getByText(/₹\s*1200/)).toBeInTheDocument()
+
+    // image alt
+    expect(screen.getByAltText('Ravi Kumar')).toBeInTheDocument()
+
+    // link to /workers/1 (aria-label is "Ravi Kumar, Plumber")
+    const link = screen.getByRole('link', { name: /Ravi Kumar, Plumber/i })
+    expect(link).toHaveAttribute('href', '/workers/1')
   })
 })
