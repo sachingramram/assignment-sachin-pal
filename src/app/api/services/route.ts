@@ -1,82 +1,49 @@
-import { NextRequest, NextResponse } from 'next/server'
-import workersData from '../../../../workers.json'
+import { NextResponse } from 'next/server'
+import { promises as fs } from 'fs'
+import path from 'path'
 
-// GET /api/services
-export async function GET(request: NextRequest) {
+type Worker = {
+  id: string | number
+  name: string
+  service: string
+  pricePerDay: number
+  rating?: number
+  image: string
+  location?: string
+}
+
+type Stat = { service: string; count: number; avgPrice: number; minPrice: number; maxPrice: number }
+
+const workersPath = path.join(process.cwd(), 'workers.json')
+
+export async function GET() {
   try {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 50 + Math.random() * 100))
+    const file = await fs.readFile(workersPath, 'utf8')
+    const workers = JSON.parse(file) as Worker[]
 
-    // Extract unique services from workers data
-    const services = Array.from(new Set(workersData.map(worker => worker.service)))
-    
-    // Get service statistics
-    const serviceStats = services.map(service => {
-      const workersInService = workersData.filter(worker => worker.service === service)
-      const avgPrice = Math.round(
-        workersInService.reduce((sum, worker) => sum + worker.pricePerDay, 0) / workersInService.length
-      )
-      const minPrice = Math.min(...workersInService.map(w => w.pricePerDay))
-      const maxPrice = Math.max(...workersInService.map(w => w.pricePerDay))
-
-      return {
-        name: service,
-        count: workersInService.length,
-        averagePrice: avgPrice,
-        priceRange: {
-          min: minPrice,
-          max: maxPrice
-        }
-      }
-    })
-
-    // Sort by count (most popular services first)
-    serviceStats.sort((a, b) => b.count - a.count)
-
-    const { searchParams } = new URL(request.url)
-    const includeStats = searchParams.get('stats') === 'true'
-
-    if (includeStats) {
-      return NextResponse.json({
-        success: true,
-        data: serviceStats,
-        metadata: {
-          totalServices: services.length,
-          totalWorkers: workersData.length
-        },
-        timestamp: new Date().toISOString()
-      }, {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'public, max-age=300',
-        }
-      })
-    } else {
-      return NextResponse.json({
-        success: true,
-        data: services,
-        metadata: {
-          count: services.length
-        },
-        timestamp: new Date().toISOString()
-      }, {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'public, max-age=300',
-        }
-      })
+    // group prices by service
+    const buckets = new Map<string, number[]>()
+    for (const w of workers) {
+      if (!w?.service || typeof w.pricePerDay !== 'number') continue
+      if (!buckets.has(w.service)) buckets.set(w.service, [])
+      buckets.get(w.service)!.push(w.pricePerDay)
     }
 
-  } catch (error) {
-    console.error('API Error:', error)
+    const stats: Stat[] = Array.from(buckets.entries()).map(([service, prices]) => {
+      const count = prices.length
+      const sum = prices.reduce((a, b) => a + b, 0)
+      const avgPrice = Math.round(sum / Math.max(1, count))
+      const minPrice = Math.min(...prices)
+      const maxPrice = Math.max(...prices)
+      return { service, count, avgPrice, minPrice, maxPrice }
+    }).sort((a, b) => a.service.localeCompare(b.service, undefined, { sensitivity: 'base' }))
 
-    return NextResponse.json({
-      success: false,
-      error: 'Internal Server Error',
-      message: 'Failed to fetch services',
-      timestamp: new Date().toISOString()
-    }, { status: 500 })
+    return NextResponse.json(
+      { data: stats },
+      { headers: { 'Cache-Control': 'no-store' } } // avoid caching in dev
+    )
+  } catch (e) {
+    console.error('/api/services failed:', e)
+    return NextResponse.json({ error: 'Failed to compute service stats' }, { status: 500 })
   }
 }
