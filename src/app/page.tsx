@@ -1,57 +1,51 @@
 'use client'
-import { WorkerType } from '@/types/workers'
-import Image from 'next/image'
-import { useState, useEffect } from 'react'
+import { useEffect, useMemo, Suspense } from 'react'
+import dynamic from 'next/dynamic'
+import Header from './components/Header'
+import Filters from './components/Filters'
+import WorkerCard from './components/WorkerCard'
+import { useWorkersStore } from './hooks/useWorkersStore'
+import type { Worker } from './types/workers'
 
-export default function WorkersPage() {
-  const [workersData, setWorkersData] = useState<WorkerType[]>([])
+const ServiceStats = dynamic(() => import('./components/ServiceStats'), {
+  ssr: false,
+  loading: () => <div className="mx-auto max-w-6xl px-4 py-8 text-slate-400">Loading stats…</div>,
+})
+
+export default function Page() {
+  const { setWorkers, filtered, workers } = useWorkersStore()
 
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        const response = await import('../../workers.json')
-        setWorkersData(response.default)
-      } catch (error) {
-        console.error('Failed to load workers:', error)
-      }
-    }
-    loadData()
-    loadData()
-  }, [])
+    let ignore = false
+    ;(async () => {
+      const res = await fetch('/api/workers', { cache: 'no-store' })
+      const data: { data: Worker[] } = await res.json()
+      if (!ignore) setWorkers(data.data)
+    })()
+    return () => { ignore = true }
+  }, [setWorkers])
+
+  const services = useMemo(() => Array.from(new Set(workers.map(w => w.service))), [workers])
+  const list = filtered()
 
   return (
-    <main className='container mx-auto px-4 py-8 bg-[#000000]'>
-      <h1 className='text-3xl font-bold mb-8 text-center'>Our Workers</h1>
+    <>
+      <Header />
+      <main className="mx-auto max-w-6xl px-4 py-6">
+        <h1 className="sr-only">Browse workers</h1>
+        <Filters services={services} />
+        {list.length === 0 ? (
+          <p className="py-8 text-slate-400">No workers match the current filters.</p>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {list.map(w => <WorkerCard key={w.id} worker={w} />)}
+          </div>
+        )}
+      </main>
 
-      <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-6'>
-        {workersData
-          .filter((worker) => worker.pricePerDay > 0)
-          .filter((worker) => worker.id !== null)
-          .sort((a, b) => a.name.localeCompare(b.name))
-          .map((worker: WorkerType) => (
-            <div
-              key={worker.id}
-              className='border rounded-lg overflow-hidden shadow hover:shadow-lg transition-shadow duration-300'
-            >
-              <div className='w-full h-48 relative'>
-                <Image
-                  src={worker.image}
-                  alt={worker.name}
-                  fill
-                  className='object-cover'
-                  priority={worker.id <= 10}
-                />
-              </div>
-              <div className='p-4'>
-                <h2 className='text-xl font-semibold'>{worker.name}</h2>
-                <p className='text-gray-600'>{worker.service}</p>
-                <p className='mt-2 font-medium'>
-                  ₹{Math.round(worker.pricePerDay * 1.18)} / day
-                </p>
-              </div>
-            </div>
-          ))}
-      </div>
-    </main>
+      <Suspense fallback={<div className="mx-auto max-w-6xl px-4 pb-8 text-slate-400">Loading…</div>}>
+        <ServiceStats />
+      </Suspense>
+    </>
   )
 }
